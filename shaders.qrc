@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>fragsh.fsh</file>
+        <file>vertsh.vsh</file>
+    </qresource>
+</RCC>
