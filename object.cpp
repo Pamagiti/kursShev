@@ -2,7 +2,6 @@
 #include <QOpenGLTexture>
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
-
 Object::Object():
     m_indexBuffer(QOpenGLBuffer::IndexBuffer), m_texture(0)
 {
@@ -59,7 +58,6 @@ void Object::draw(QOpenGLShaderProgram *program, QOpenGLFunctions *functions)
     if(!m_vertexBuffer.isCreated() || !m_indexBuffer.isCreated()) return;
 //    m_texture->bind(0);
 //    program->setUniformValue("u_texture", 0);
-    QMatrix4x4 modalMatrix;
     modalMatrix.setToIdentity();
 
     modalMatrix.translate(m_translate);
@@ -68,7 +66,7 @@ void Object::draw(QOpenGLShaderProgram *program, QOpenGLFunctions *functions)
     modalMatrix = m_globalTransform * modalMatrix;
 
     QMatrix4x4 testM = modalMatrix;
-    qDebug() << "Modal M" << testM;
+    //qDebug() << "Modal M" << testM;
     program->setUniformValue("u_modalMatrix", modalMatrix);
     m_vertexBuffer.bind();
 
@@ -90,8 +88,9 @@ void Object::draw(QOpenGLShaderProgram *program, QOpenGLFunctions *functions)
 //    program->enableAttributeArray(normLoc);
 //    program->setAttributeBuffer(normLoc, GL_FLOAT, offset, 3, sizeof(VertexData));
     m_indexBuffer.bind();
-
-    functions->glDrawElements(GL_QUADS, m_indexBuffer.size(), GL_UNSIGNED_INT, 0);
+    glPointSize(5.0f);
+    functions->glDrawElements(GL_POINTS, m_indexBuffer.size(), GL_UNSIGNED_INT, 0);
+    functions->glDrawElements(GL_TRIANGLES, m_indexBuffer.size(), GL_UNSIGNED_INT, 0);
     m_vertexBuffer.release();
     m_indexBuffer.release();
 //    m_texture->release();
@@ -116,4 +115,9 @@ void Object::scale(const float &s)
 void Object::setGlobalTransform(const QMatrix4x4 &g)
 {
     m_globalTransform = g;
+}
+
+const QMatrix4x4 Object::getModalMatrix()
+{
+    return modalMatrix;
 }

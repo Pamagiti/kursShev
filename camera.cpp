@@ -11,8 +11,8 @@ camera::camera()
 void camera::draw(QOpenGLShaderProgram *program, QOpenGLFunctions *functions)
 {
     if (functions != 0) return;
-    QMatrix4x4 testView = m_viewMatrix;
-    qDebug() << "testV" << testView;
+    //QMatrix4x4 testView = m_viewMatrix;
+    //qDebug() << "testV" << testView;
     program->setUniformValue("u_viewMatrix", m_viewMatrix);
 }
 
@@ -33,7 +33,7 @@ void camera::rotateX(const QQuaternion &r)
 
 void camera::rotateY(const QQuaternion &r)
 {
-    m_rotateX = r * m_rotateY;
+    m_rotateY = r * m_rotateY;
     m_rotate = m_rotateY * m_rotateX;
 
     updateVM();

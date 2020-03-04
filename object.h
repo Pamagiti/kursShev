@@ -37,6 +37,8 @@ public:
     void scale(const float &s);
     void translate(const QVector3D &t);
     void setGlobalTransform(const QMatrix4x4 &g);
+    const QMatrix4x4 getModalMatrix();
+    QMatrix4x4 modalMatrix;
 private:
     QOpenGLBuffer m_vertexBuffer;
     QOpenGLBuffer m_indexBuffer;

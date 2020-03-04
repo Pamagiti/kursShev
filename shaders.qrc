@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>fragsh.fsh</file>
         <file>vertsh.vsh</file>
+        <file>select.vsh</file>
+        <file>select.fsh</file>
     </qresource>
 </RCC>

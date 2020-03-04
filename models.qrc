@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/testmodels">
+        <file>cube.obj</file>
+        <file>FinalBaseMesh.obj</file>
+        <file>and.obj</file>
+    </qresource>
+</RCC>

@@ -53,13 +53,20 @@ public:
     QVector<TexturCord> list_texture; //vt
     QVector<Normal> list_normal; //vn
     QVector<Face> face; //f
+    QVector<QList<int> > n_Face;
     QVector<int> triangles;
+    QVector<QList<int> > FACE;
 private:
     void record(const QString &line);
     void readVerticex(const QString &line);
     void readTextureCord(const QString &line);
     void readNormal(const QString &line);
     void readFace(const QString &line);
+    void readFaceTwo(const QString &line);
+
+    QVector<QList<int>> triungFaces(const QVector<QList<int> > &faces);
+    QVector<QList<int>> FaceToTri(const QList<int> &face);
+
 
     QString get_corret_line(const QString &line);
     bool isblank(const QChar &ch);

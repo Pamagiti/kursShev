@@ -46,6 +46,8 @@ void viewport::initializeGL()
     initShaders();
     loadObj();
     m_TransformObjects.append(m_objects[m_objects.size() - 1]);
+    //selectPoint = points;
+    //добавить selectpoint
 }
 
 void viewport::resizeGL(int w, int h)
@@ -54,8 +56,8 @@ void viewport::resizeGL(int w, int h)
 
     m_projectionMatrix.setToIdentity();
     m_projectionMatrix.perspective(45, aspect, 0.001f, 1000.0f);
-    QMatrix4x4 testP = m_projectionMatrix;
-    qDebug() << "ProjMM" << testP;
+    //QMatrix4x4 testP = m_projectionMatrix;
+    //qDebug() << "ProjMM" << testP;
 }
 
 void viewport::paintGL()
@@ -81,52 +83,47 @@ void viewport::mousePressEvent(QMouseEvent *event)
 {
     if (event->buttons() == Qt::LeftButton){//только на левую кнопку мыши
         m_mousePosition = QVector2D(event->localPos());//Локальная позиция данного окна
+        QMatrix4x4 test1 = m_projectionMatrix * m_camera->getViewMatrix() * m_object->getModalMatrix();
+//        qDebug() << test;
+//        QVector4D ee(obj.list_vertices.at(0).x, obj.list_vertices.at(0).y, obj.list_vertices.at(0).z, 1);
+//        QVector3D test2 = (ee * test1.inverted()).toVector3D();
+//        qDebug() << test2;
+//        QVector3D test = screenCToWorldC(m_mousePosition, obj.list_vertices.at(0).x, obj.list_vertices.at(0).y, obj.list_vertices.at(0).z);
+//        qDebug() << test;
 
-        QVector4D tmp(2.0f * m_mousePosition.x() / width() - 1.0f, -2.0f * m_mousePosition.y() / height() + 1, -1.0f, 1.0f);
-       // qDebug () << tmp;
-        QVector4D iTmp((m_projectionMatrix.inverted() * tmp).toVector2D(), -1.0f, 0.0f);
-       // qDebug () << iTmp;
-        QVector3D Direction((m_camera->getViewMatrix().inverted() * iTmp).toVector3D().normalized());
-        //qDebug () << Direction;
-        QVector3D camPos((m_camera->getViewMatrix().inverted() * QVector4D(0.0f, 0.0f, 0.0f, 1.0f)).toVector3D());
-        //qDebug () << camPos;
-        //Ax + By + Cz + D = 0
-        //norm(A, B, C)
-        //D - расстояние до центра системы координат
-        //P * N + d = 0 где d - расстояние d центра d = -P0 * N любая точка плоскоти умножается на нормаль
-        //O + D*t
-        //в тетрадь смотри ебать
+//        QPointF Viewport3D::pixelPosToViewPos(const QPointF &pos)
+//        {
+//            return QPointF(2.0 * float(pos.x()) / width() - 1.0,
+//                           1.0 - 2.0 * float(pos.y()) / height());
+//        }
 
-        QVector3D N(0.0f, 0.0f, 1.0f);
-        float t = -QVector3D::dotProduct(camPos, N) / QVector3D::dotProduct(Direction, N);
-        QVector3D result = camPos + Direction * t;
-        //qDebug () << result;
 
     }
-//    if (event->buttons() == Qt::RightButton)
+//    else if (event->button() == Qt::MiddleButton){
+//        int res = selectingPoint(event->x(), event->y(), points);
+//        qDebug() << res;
+//    }
     event->accept();
 }
 
 void viewport::mouseMoveEvent(QMouseEvent *event)
 {
-    if (event->buttons() != Qt::LeftButton) return;
-
+//    if (event->button() == Qt::LeftButton){
     QVector2D diff = QVector2D(event->localPos()) - m_mousePosition;//Просчет разницы между текущим положением и старым(направление)
     m_mousePosition = QVector2D(event->localPos());//Текущее положение
 
-    float angle = diff.length() / 2.0f; //Угол поворота
+    float angle = diff.length() / 2.0f;
 
     QVector3D axis = QVector3D(diff.y(), diff.x(), 0.0); //Нормаль к вектору направления
 
-    //Итоговый поворот
     m_camera->rotate(QQuaternion::fromAxisAndAngle(axis, angle));
 
-//    angleX = diff.y() / 2.0f;
-//    angleY = diff.x() / 2.0f;
+//    angleX = diff.x() / 2.0f;
+//    angleY = diff.y() / 2.0f;
 
 //    m_camera->rotateX(QQuaternion::fromAxisAndAngle(1.0f, 0.0f, 0.0f, angleX));
 //    m_camera->rotateY(QQuaternion::fromAxisAndAngle(0.0f, 1.0f, 0.0f, angleY));
-
+//    }
     update();
 }
 
@@ -142,18 +139,22 @@ void viewport::wheelEvent(QWheelEvent *event)
 
 void viewport::loadObj()
 {
-    QStringList pathToFiles = QFileDialog::getOpenFileNames(nullptr, "Open Dialog", "", "*.obj");
-    QString path;
-    foreach(QString str, pathToFiles) path.append(str);
-    QDir(path).absolutePath();
+//    QString dir = QFileDialog::getExistingDirectory(nullptr, "", "");
 
-    obj.loadObj(path);
+    //QString path = QFileDialog::getOpenFileName(this, "Open Dialog", "", "*.obj",  nullptr, QFileDialog::DontUseNativeDialog);
+//    QString path;
+
+//    foreach(QString str, pathToFiles) path.append(str);
+//    QDir(dir).absolutePath();
+
+    obj.loadObj(":/testmodels/cube.obj");
 
     QVector<QVector3D> coords;
     QVector<QVector2D> texCoords;
     QVector<QVector3D> normal;
     QVector<VertexData> vertexes;
     QVector<GLuint> indexes;
+
     //qDebug() << "V";
     for (int i = 0; i < obj.list_vertices.size(); i++)
     {
@@ -162,6 +163,8 @@ void viewport::loadObj()
         GLfloat zV = obj.list_vertices.at(i).z;
         //qDebug() << xV << yV << zV;
         coords.append(QVector3D(xV, yV, zV));
+
+        points << QVector3D(xV, yV, zV);
        // qDebug() << "Успех вершин";
     }
     //qDebug() << "VT";
@@ -206,32 +209,14 @@ void viewport::loadObj()
             normal.append(QVector3D(xN, yN, zN));
         }
     }
-    for (int i = 0; i < obj.face.size(); i++)
-    {
-
-        GLint cord1 = obj.face.at(i).id_vertices;
-        GLint tcord1 = obj.face.at(i).id_textur_coordinat;
-        GLint norma1 = obj.face.at(i).id_normal;
-        qDebug() << cord1 + 1 << "/" << tcord1 + 1<< "/" << norma1 + 1;
-        vertexes.append(VertexData(coords[cord1], texCoords[tcord1], normal[norma1]));
-        int k = indexes.size();
-        qDebug() << k;
-        indexes.append(indexes.size());
-
-//        GLint cord2 = obj.face.at(i + 1).id_vertices;
-//        GLint tcord2 = obj.face.at(i + 1).id_textur_coordinat;
-//        GLint norma2 = obj.face.at(i + 1).id_normal;
-
-//        vertexes.append(VertexData(coords[cord2], texCoords[tcord2], normal[norma2]));
-//        indexes.append(indexes.size());
-
-//        GLint cord3 = obj.face.at(i + 2).id_vertices;
-//        GLint tcord3 = obj.face.at(i + 2).id_textur_coordinat;
-//        GLint norma3 = obj.face.at(i + 2).id_normal;
-
-//        vertexes.append(VertexData(coords[cord3], texCoords[tcord3], normal[norma3]));
-//        indexes.append(indexes.size());
-    }
+    foreach (QList<int> face, obj.FACE)
+            for (int i = 0; i < face.count(); i++)
+            {
+                GLint coord = face.at(i);
+                //qDebug() << coord;
+                vertexes.append(VertexData(coords[coord], texCoords[0], normal[0]));
+                indexes.append(indexes.size());
+            }
 
     m_objects.append(new Object(vertexes, indexes));
     m_object = new Object(vertexes, indexes);
@@ -247,13 +232,89 @@ void viewport::initShaders()
 
     if (!m_program.link()) //link - объединяет все шейдеры
         close();
-//    if (!m_program.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertPOINT.vsh"))
+
+//    if (!m_programSelect.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/select.vsh"))
 //        close();//Шейдер вершин
 
-//    if (!m_program.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fragPOINT.fsh"))
+//    if (!m_programSelect.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/select.fsh"))
 //        close();//Шейдер пиксельный
 
-//    if (!m_program.link()) //link - объединяет все шейдеры
-//        close();
+//    if (!m_programSelect.link()) //link - объединяет все шейдеры
+//            close();
+}
+
+void viewport::showPoints(QList<QVector3D> &points, float size)
+{
+    this->points = points;
+    this->pointSize = size;
+}
+
+void viewport::drawPoints()
+{
+    showPoints(points, 5.0f);
+    glColor3d(0.0f, 0.0f, 0.0f);
+    glPointSize(this->pointSize);
+    glBegin(GL_POINTS);
+    foreach(QVector3D point, this->points) {
+        glVertex3d(point.x(),point.y(),point.z());
+    }
+    glEnd();
+}
+
+QVector3D viewport::screenCToWorldC(const QVector2D &m_mousePosition, float x, float y, float z)
+{
+    QVector4D tmp(2.0f * m_mousePosition.x() / width() - 1.0f, -2.0f * m_mousePosition.y() / height() + 1, -1.0f, 1.0f);
+    QVector4D iTmp((m_projectionMatrix.inverted() * tmp).toVector2D(), -1.0f, 0.0f);
+    QVector3D Direction((m_camera->getViewMatrix().inverted() * iTmp).toVector3D().normalized());
+    QVector3D camPos((m_camera->getViewMatrix().inverted() * QVector4D(0.0f, 0.0f, 0.0f, 1.0f)).toVector3D());
+
+//    Ax + By + Cz + D = 0
+//    norm(A, B, C)
+//    P * N - P0 * N = 0
+//    O + D * t
+//    (O + D * t) * N - P0 * N = 0
+//    t = (P0 * N - O * N) / (D * N)
+//    result = O + D * t
+
+    QVector3D N(0.0f, 1.0f, 0.0f);
+    QVector3D P0(x, y, z);
+//    float t = -QVector3D::dotProduct(camPos, N) / QVector3D::dotProduct(Direction, N);
+    float t = (QVector3D::dotProduct(P0, N) - QVector3D::dotProduct(camPos, N)) / QVector3D::dotProduct(Direction, N);
+    QVector3D result = camPos + Direction * t;
+    return result;
+}
+
+int viewport::ColorPicking(int x, int y, QList<QVector3D> &startPoint)
+{
+        glEnable(GL_DEPTH_TEST);
+
+        glViewport(0, 0, width(), height());
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        m_programSelect.bind();
+        m_programSelect.setUniformValue("u_projectionMatrix", m_projectionMatrix);
+        m_camera->draw(&m_programSelect);
+
+        //отрисовать точки - нужна модельная матрица
+        //for(start, count, i++){
+        // m_programSelect.setUniformValue("u_code", i + 1)
+        //point.draw();
+        //
+        for (int i = 0; i < startPoint.count(); i++){
+            m_programSelect.setUniformValue("u_code", (float)i + 1);
+            object.draw(&m_programSelect, context()->functions());
+            m_programSelect.setUniformValue("u_modalMatrix", object.modalMatrix);
+        }
+        m_programSelect.release();
+
+        GLint viewport[4];
+        glGetIntegerv(GL_VIEWPORT, viewport);
+        unsigned char res[4];
+        glReadPixels(x, viewport[3] - y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &res);
+
+
+        glDisable(GL_DEPTH_TEST);
+
+        return res[0];
 }
 

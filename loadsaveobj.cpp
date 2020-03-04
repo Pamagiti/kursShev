@@ -27,9 +27,12 @@ void LoadSaveObj::record(const QString &line)
     else if (line.at(0) == 'v' && line.at(1) == 'n')
         readNormal(line);
     else if (line.at(0) == 'f')
-        readFace(line);
-  // testF = face;
-//    qDebug() << "Faces" << testF;
+        readFaceTwo(line);
+    QVector<QList<int>> TF = triungFaces(n_Face);
+    foreach (QList<int> t, TF)
+        if (t.size() != 0)
+            FACE << t;
+
 }
 
 void LoadSaveObj::readVerticex(const QString &line)
@@ -316,4 +319,69 @@ void LoadSaveObj::readFace(const QString &line)
             face.push_back(f);
         }
     }
+}
+
+void LoadSaveObj::readFaceTwo(const QString &line)
+{
+    QStringList list;
+    QList<int> faces;
+    list = line.split(QRegExp(" "));
+    if (list.last() == "\r\n"){
+        countFace = list.size() - 2;
+        list.removeAt(list.indexOf(list.last()));} else countFace = list.size() - 1;
+    //qDebug() << countFace;
+    QStringList list_value;
+
+    for(int i = 1; i < countFace + 1; ++i)
+    {
+        list_value = list.at(i).split(QRegExp("/"));
+
+        if (list_value.size() != 1)
+        {
+            faces << list_value.at(0).toInt() - 1;
+        }
+        //qDebug() << "Faces" << faces;
+    }
+
+    n_Face << faces;
+
+}
+
+QVector<QList<int>> LoadSaveObj::triungFaces(const QVector<QList<int> > &faces)
+{
+    int nTriangulatedFaces = 0;
+    foreach (QList<int> face, faces)
+        nTriangulatedFaces += face.count() - 2;
+
+    QVector<QList<int>> triFaces;
+    triFaces.resize(nTriangulatedFaces);
+
+    int triFaceid = 0;
+
+    foreach (QList<int> face, faces){
+        QVector<QList<int>> triangl = FaceToTri(face);
+        foreach (QList<int> tri, triangl)
+            triFaces[triFaceid] << tri;
+            triFaceid++;
+    }
+    return triFaces;
+}
+
+QVector<QList<int>> LoadSaveObj::FaceToTri(const QList<int> &face)
+{
+    int nVert = face.count();
+    int nTri = nVert - 2;
+    QVector<QList<int>> tri;
+    tri.resize(nTri);
+
+    int triID = 0;
+    for (int vertID = 2; vertID < nVert; vertID++)
+    {
+        tri[triID] << face[0];
+        tri[triID] << face[vertID - 1];
+        tri[triID] << face[vertID];
+        triID++;
+
+    }
+    return tri;
 }
